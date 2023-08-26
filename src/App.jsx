@@ -258,43 +258,61 @@ function App() {
                 borderWidth="1px"
                 borderRadius="lg"
                 p={4}
-                // display={"flex"}
-                // flexDirection={"column"}
+                display={"flex"}
+                flexDirection={"column"}
+                justifyContent={"space-between"}
               >
-                <ButtonGroup spacing={4} direction="row" align="center">
-                  <Button colorScheme="teal" onClick={() => handleSpeak(text)}>
-                    Listen Question
-                  </Button>
-                  <Button
-                    colorScheme="purple"
-                    onClick={SpeechRecognition.stopListening}
+                <Box>
+                  <ButtonGroup
+                    spacing={4}
+                    direction="row"
+                    align="center"
+                    my={3}
                   >
-                    Stop
-                  </Button>
-                </ButtonGroup>
-                <ButtonGroup>
-                  <Button
-                    colorScheme="messenger"
-                    onClick={() =>
-                      SpeechRecognition.startListening({ continuous: true })
-                    }
-                  >
-                    Answer the Question
-                  </Button>
-                  <Button
-                    colorScheme="twitter"
-                    onClick={() => {
-                      hanldeResetTranscript();
-                    }}
-                  >
-                    Reset Answer
-                  </Button>
-                </ButtonGroup>
+                    <Button
+                      colorScheme="teal"
+                      onClick={() => handleSpeak(text)}
+                    >
+                      Listen Question
+                    </Button>
+                    <Button
+                      colorScheme="purple"
+                      onClick={SpeechRecognition.stopListening}
+                    >
+                      Stop Listening
+                    </Button>
+                  </ButtonGroup>
 
-                <Button colorScheme="teal" onClick={nextQuestion}>
-                  Get Ques
-                </Button>
-                <Button>End Test</Button>
+                  <ButtonGroup>
+                    <Button
+                      colorScheme="messenger"
+                      onClick={() =>
+                        SpeechRecognition.startListening({ continuous: true })
+                      }
+                    >
+                      Answer the Question
+                    </Button>
+                    <Button
+                      colorScheme="twitter"
+                      onClick={() => {
+                        hanldeResetTranscript();
+                      }}
+                    >
+                      Reset Answer
+                    </Button>
+                  </ButtonGroup>
+                </Box>
+
+                <Box
+                  display={"flex"}
+                  flexDirection={"row"}
+                  justifyContent={"space-between"}
+                >
+                  <Button colorScheme="teal" onClick={nextQuestion}>
+                    Get Ques
+                  </Button>
+                  <Button>End Test</Button>
+                </Box>
               </Box>
             </Box>
           </Box>
