@@ -10,6 +10,7 @@ import {
   Button,
   useColorModeValue,
   Text,
+  Textarea,
 } from "@chakra-ui/react";
 import regeneratorRuntime from "regenerator-runtime";
 import SpeechRecognition, {
@@ -142,6 +143,23 @@ function App() {
     synth.cancel();
   };
 
+  const nextQuestion = () => {
+    console.log(quesList.length);
+    if (quesList.length === 0) {
+      alert("No more questions available.");
+    } else {
+      // Get a random index
+      const randomIndex = Math.floor(Math.random() * quesList.length);
+      // Get the random question
+      let tempQL = quesList;
+      // console.log(tempQL);
+      const randomQuestion = tempQL.splice(randomIndex, 1)[0];
+      setQuesList(tempQL);
+      console.log(randomQuestion);
+      setText(randomQuestion.question);
+      handleSpeak(randomQuestion.question);
+    }
+  };
   return (
     <>
       {getStarted ? (
@@ -173,20 +191,23 @@ function App() {
                 <Box>Mercor Assignment</Box>
               </HStack>
               <Flex alignItems={"center"} gap={50}>
+                {!skipped && (
+                  <Button
+                    colorScheme="teal"
+                    onClick={() => {
+                      handleStopSpeak();
+                      setSkipped(true);
+                    }}
+                  >
+                    Skip Tutorial
+                  </Button>
+                )}
                 <Text>Userrname: {user.username}</Text>
-                {/* <Button
-                  variant={"solid"}
-                  colorScheme={"teal"}
-                  size={"sm"}
-                  mr={4}
-                >
-                  Getting Started
-                </Button> */}
               </Flex>
             </Flex>
           </Box>
 
-          <Box p={4}>
+          <Box p={4} h="80vh">
             {true ? (
               <select onChange={handleVoiceChange}>
                 {voices.map((voice) => (
@@ -203,74 +224,78 @@ function App() {
               display="flex"
               alignItems="center"
               justifyContent="center"
-              flexDirection={"column"}
+              flexDirection={"row"}
               gap={4}
-              h="100vh"
+              h="100%"
               w="100%"
             >
-              <ButtonGroup spacing={4} direction="row" align="center">
-                <Button
-                  colorScheme="messenger"
-                  onClick={() =>
-                    SpeechRecognition.startListening({ continuous: true })
-                  }
-                >
-                  Start
-                </Button>
-                <Button
-                  colorScheme="purple"
-                  onClick={SpeechRecognition.stopListening}
-                >
-                  Stop
-                </Button>
-                <Button
-                  colorScheme="twitter"
-                  onClick={() => {
-                    hanldeResetTranscript();
-                  }}
-                >
-                  Reset
-                </Button>
-              </ButtonGroup>
-              <Button colorScheme="teal" onClick={() => handleSpeak(text)}>
-                Speak
-              </Button>
-              {!skipped && (
-                <Button
-                  colorScheme="teal"
-                  onClick={() => {
-                    handleStopSpeak();
-                    setSkipped(true);
-                  }}
-                >
-                  Skip Tutorial
-                </Button>
-              )}
-              <p color="black">{transcript}</p>
-              <Button
-                colorScheme="teal"
-                onClick={() => {
-                  console.log(quesList.length);
-                  if (quesList.length === 0) {
-                    alert("No more questions available.");
-                  } else {
-                    // Get a random index
-                    const randomIndex = Math.floor(
-                      Math.random() * quesList.length
-                    );
-                    // Get the random question
-                    let tempQL = quesList;
-                    // console.log(tempQL);
-                    const randomQuestion = tempQL.splice(randomIndex, 1)[0];
-                    setQuesList(tempQL);
-                    console.log(randomQuestion);
-                    setText(randomQuestion.question);
-                    handleSpeak(randomQuestion.question);
-                  }
-                }}
+              <Box
+                w="65%"
+                h="100%"
+                borderWidth="1px"
+                borderRadius="lg"
+                overflow="hidden"
+                my={4}
+                p={4}
               >
-                Get Ques
-              </Button>
+                <Textarea
+                  bg="blue.100"
+                  placeholder="You can write something here for your convenience..."
+                />
+                <p color="black">{transcript}</p>
+                <p color="black">
+                  Lorem ipsum dolor sit amet consectetur adipisicing elit.
+                  Numquam aut architecto fuga culpa ullam facilis, cumque vel
+                  minus earum voluptatum a ipsum, corporis doloribus iusto. Quis
+                  at eum rem et ipsa commodi, ducimus ullam sapiente quam
+                  laborum vero culpa repellendus sint? Nisi accusamus numquam
+                  sapiente assumenda architecto ipsum ratione nihil!
+                </p>
+              </Box>
+              <Box
+                w="35%"
+                h="100%"
+                borderWidth="1px"
+                borderRadius="lg"
+                p={4}
+                // display={"flex"}
+                // flexDirection={"column"}
+              >
+                <ButtonGroup spacing={4} direction="row" align="center">
+                  <Button colorScheme="teal" onClick={() => handleSpeak(text)}>
+                    Listen Question
+                  </Button>
+                  <Button
+                    colorScheme="purple"
+                    onClick={SpeechRecognition.stopListening}
+                  >
+                    Stop
+                  </Button>
+                </ButtonGroup>
+                <ButtonGroup>
+                  <Button
+                    colorScheme="messenger"
+                    onClick={() =>
+                      SpeechRecognition.startListening({ continuous: true })
+                    }
+                  >
+                    Answer the Question
+                  </Button>
+                  <Button
+                    colorScheme="twitter"
+                    onClick={() => {
+                      hanldeResetTranscript();
+                    }}
+                  >
+                    Reset Answer
+                  </Button>
+                </ButtonGroup>
+
+                <Button colorScheme="teal" onClick={nextQuestion}>
+                  Get Ques
+                </Button>
+                <Button>End Test</Button>
+              </Box>
             </Box>
           </Box>
         </>
