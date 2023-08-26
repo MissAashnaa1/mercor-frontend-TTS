@@ -15,14 +15,13 @@ import regeneratorRuntime from "regenerator-runtime";
 import SpeechRecognition, {
   useSpeechRecognition,
 } from "react-speech-recognition";
-import Chat from "./temp/Chat";
-import Navbar from "./NavBar";
 
 function App() {
   const [transcriptText, setTranscriptText] = useState("");
   const [quesList, setQuesList] = useState([]);
   const [getStarted, setGetStarted] = useState(true);
   const [skipped, setSkipped] = useState(false);
+  const [user, setUser] = useState(null);
 
   // speak
   const [text, setText] = useState("A new wave of writers");
@@ -36,6 +35,22 @@ function App() {
     // welcomeFunc();
     // setTimeout(() => {}, 1000);
     getQuesList();
+
+    setUser(JSON.parse(localStorage.getItem("user")));
+
+    if (synth.speaking) {
+      synth.cancel();
+    }
+  }, []);
+  useEffect(() => {
+    const unloadCallback = (event) => {
+      event.preventDefault();
+      event.returnValue = "";
+      return "";
+    };
+
+    window.addEventListener("beforeunload", unloadCallback);
+    return () => window.removeEventListener("beforeunload", unloadCallback);
   }, []);
   useEffect(() => {
     // Fetch the list of available voices when the component mounts
@@ -158,16 +173,15 @@ function App() {
                 <Box>Mercor Assignment</Box>
               </HStack>
               <Flex alignItems={"center"} gap={50}>
-                <Text>Username: </Text>
-                <Button
+                <Text>Userrname: {user.username}</Text>
+                {/* <Button
                   variant={"solid"}
                   colorScheme={"teal"}
                   size={"sm"}
                   mr={4}
                 >
                   Getting Started
-                </Button>
-                <Box w={"51%"}></Box>
+                </Button> */}
               </Flex>
             </Flex>
           </Box>
@@ -192,7 +206,7 @@ function App() {
               flexDirection={"column"}
               gap={4}
               h="100vh"
-              w="100vw"
+              w="100%"
             >
               <ButtonGroup spacing={4} direction="row" align="center">
                 <Button
@@ -233,16 +247,6 @@ function App() {
                 </Button>
               )}
               <p color="black">{transcript}</p>
-            </Box>
-            <Box
-              display="flex"
-              alignItems="center"
-              justifyContent="center"
-              flexDirection={"column"}
-              gap={4}
-              h="100vh"
-              w="100vw"
-            >
               <Button
                 colorScheme="teal"
                 onClick={() => {

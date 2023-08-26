@@ -29,8 +29,6 @@ const Login = () => {
   const [name, setName] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
-  const handleShowClick = () => setShowPassword(!showPassword);
-
   const navigate = useNavigate();
 
   const handleFormSubmit = async (e) => {
