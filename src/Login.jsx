@@ -9,11 +9,8 @@ import {
   InputLeftElement,
   chakra,
   Box,
-  Link,
   Avatar,
   FormControl,
-  FormHelperText,
-  InputRightElement,
 } from "@chakra-ui/react";
 import { FaUserAlt, FaLock } from "react-icons/fa";
 import toast, { Toaster } from "react-hot-toast";
@@ -22,7 +19,6 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
 const CFaUserAlt = chakra(FaUserAlt);
-const CFaLock = chakra(FaLock);
 
 const Login = () => {
   const [showPassword, setShowPassword] = useState(false);

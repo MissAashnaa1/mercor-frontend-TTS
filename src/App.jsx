@@ -1,28 +1,35 @@
-import React, { useEffect, useLayoutEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import "./App.css";
-import { HamburgerIcon, CloseIcon, AddIcon } from "@chakra-ui/icons";
 import {
   Box,
   ButtonGroup,
   Flex,
   HStack,
-  IconButton,
   Button,
-  useColorModeValue,
   Text,
   Textarea,
+  useDisclosure,
 } from "@chakra-ui/react";
 import regeneratorRuntime from "regenerator-runtime";
 import SpeechRecognition, {
   useSpeechRecognition,
 } from "react-speech-recognition";
+import BASE_URL from "./CONATANT";
+import axios from "axios";
+import SubmissionModal from "./components/Modal";
+import { toast, Toaster } from "react-hot-toast";
+import { useNavigate } from "react-router-dom";
 
 function App() {
   const [transcriptText, setTranscriptText] = useState("");
   const [quesList, setQuesList] = useState([]);
   const [getStarted, setGetStarted] = useState(true);
   const [skipped, setSkipped] = useState(false);
+  const [submiting, setSubmiting] = useState(false);
   const [user, setUser] = useState(null);
+  const [quesAns, setQuesAns] = useState([{}]);
+  const [prevSubmissions, setPrevSubmissions] = useState([{}]);
+  const [begin, setBegin] = useState(false);
 
   // speak
   const [text, setText] = useState("A new wave of writers");
@@ -30,11 +37,13 @@ function App() {
   const [selectedVoice, setSelectedVoice] = useState(null);
   const synth = window.speechSynthesis;
 
+  const { isOpen, onOpen, onClose } = useDisclosure();
+
+  const navigate = useNavigate();
+
   const voicePackName = "Microsoft Neerja Online (Natural) - English (India)";
 
   useEffect(() => {
-    // welcomeFunc();
-    // setTimeout(() => {}, 1000);
     getQuesList();
 
     setUser(JSON.parse(localStorage.getItem("user")));
@@ -54,14 +63,11 @@ function App() {
     return () => window.removeEventListener("beforeunload", unloadCallback);
   }, []);
   useEffect(() => {
-    // Fetch the list of available voices when the component mounts
     getVoices();
+    getPrevSubmission();
 
-    // Event listener for when voices change
     synth.addEventListener("voiceschanged", getVoices);
-    //
 
-    // Cleanup event listener on unmount
     return () => {
       synth.removeEventListener("voiceschanged", getVoices);
     };
@@ -69,6 +75,21 @@ function App() {
   const welcomeFunc = () => {
     const welcomeText = "Welcome to the test";
     handleSpeak("Welcome to the test");
+  };
+
+  const getPrevSubmission = async () => {
+    try {
+      let res = await axios.get(
+        `${BASE_URL}/api/test-submission/${
+          JSON.parse(localStorage.getItem("user"))._id
+        }`
+      );
+      console.log(res.data);
+      setPrevSubmissions(res.data.submissions.quesAnswers);
+    } catch (error) {
+      console.log(error);
+      toast.error("Something went wrong!");
+    }
   };
 
   const getQuesList = async () => {
@@ -144,7 +165,46 @@ function App() {
   };
 
   const nextQuestion = () => {
+    setQuesAns((prev) => [...prev, { question: text, answer: transcript }]);
     console.log(quesList.length);
+    if (quesList.length === 0) {
+      alert("No more questions available.");
+    } else {
+      // Get a random index
+      const randomIndex = Math.floor(Math.random() * quesList.length);
+      // Get the random question
+      let tempQL = quesList;
+      // console.log(tempQL);
+      const randomQuestion = tempQL.splice(randomIndex, 1)[0];
+      setQuesList(tempQL);
+      console.log(randomQuestion);
+      setText(randomQuestion.question);
+      handleSpeak(randomQuestion.question);
+    }
+  };
+
+  const handleEndTest = async () => {
+    console.log(quesAns, "quesAns");
+    // return;
+    try {
+      let res = await axios.post(
+        `${BASE_URL}/api/test-submission/${user._id}`,
+        { quesAns }
+      );
+      console.log(res.data);
+      if (res.data.success) {
+        toast.success("Test Submitted Successfully");
+        setTimeout(() => {
+          localStorage.removeItem("user");
+          navigate("/");
+        }, 2000);
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
+  const startTest = () => {
+    setBegin(true);
     if (quesList.length === 0) {
       alert("No more questions available.");
     } else {
@@ -185,6 +245,12 @@ function App() {
         </Box>
       ) : (
         <>
+          <SubmissionModal
+            isOpen={isOpen}
+            onOpen={onOpen}
+            onClose={onClose}
+            submissions={prevSubmissions}
+          />
           <Box bg="facebook.100" px={4}>
             <Flex h={16} alignItems={"center"} justifyContent={"space-between"}>
               <HStack spacing={8} alignItems={"center"}>
@@ -202,7 +268,17 @@ function App() {
                     Skip Tutorial
                   </Button>
                 )}
-                <Text>Userrname: {user.username}</Text>
+                <Text
+                  borderWidth="1px"
+                  borderRadius="lg"
+                  padding={2}
+                  borderColor={"black"}
+                >
+                  Username: {user.username}
+                </Text>
+                <Button mt={3} onClick={onOpen}>
+                  My Submissions
+                </Button>
               </Flex>
             </Flex>
           </Box>
@@ -243,81 +319,98 @@ function App() {
                   placeholder="You can write something here for your convenience..."
                 />
                 <p color="black">{transcript}</p>
-                <p color="black">
-                  Lorem ipsum dolor sit amet consectetur adipisicing elit.
-                  Numquam aut architecto fuga culpa ullam facilis, cumque vel
-                  minus earum voluptatum a ipsum, corporis doloribus iusto. Quis
-                  at eum rem et ipsa commodi, ducimus ullam sapiente quam
-                  laborum vero culpa repellendus sint? Nisi accusamus numquam
-                  sapiente assumenda architecto ipsum ratione nihil!
-                </p>
               </Box>
-              <Box
-                w="35%"
-                h="100%"
-                borderWidth="1px"
-                borderRadius="lg"
-                p={4}
-                display={"flex"}
-                flexDirection={"column"}
-                justifyContent={"space-between"}
-              >
-                <Box>
-                  <ButtonGroup
-                    spacing={4}
-                    direction="row"
-                    align="center"
-                    my={3}
-                  >
-                    <Button
-                      colorScheme="teal"
-                      onClick={() => handleSpeak(text)}
-                    >
-                      Listen Question
-                    </Button>
-                    <Button
-                      colorScheme="purple"
-                      onClick={SpeechRecognition.stopListening}
-                    >
-                      Stop Listening
-                    </Button>
-                  </ButtonGroup>
-
-                  <ButtonGroup>
-                    <Button
-                      colorScheme="messenger"
-                      onClick={() =>
-                        SpeechRecognition.startListening({ continuous: true })
-                      }
-                    >
-                      Answer the Question
-                    </Button>
-                    <Button
-                      colorScheme="twitter"
-                      onClick={() => {
-                        hanldeResetTranscript();
-                      }}
-                    >
-                      Reset Answer
-                    </Button>
-                  </ButtonGroup>
-                </Box>
-
+              {!begin ? (
                 <Box
+                  w="35%"
+                  h="100%"
+                  borderWidth="1px"
+                  borderRadius="lg"
+                  p={4}
                   display={"flex"}
-                  flexDirection={"row"}
+                  flexDirection={"column"}
+                  justifyContent={"center"}
+                  alignItems={"center"}
+                >
+                  <Button onClick={startTest}>Start Test</Button>
+                </Box>
+              ) : (
+                <Box
+                  w="35%"
+                  h="100%"
+                  borderWidth="1px"
+                  borderRadius="lg"
+                  p={4}
+                  display={"flex"}
+                  flexDirection={"column"}
                   justifyContent={"space-between"}
                 >
-                  <Button colorScheme="teal" onClick={nextQuestion}>
-                    Get Ques
-                  </Button>
-                  <Button>End Test</Button>
+                  <Box>
+                    <ButtonGroup
+                      spacing={4}
+                      direction="row"
+                      align="center"
+                      my={3}
+                    >
+                      <Button
+                        colorScheme="teal"
+                        onClick={() => handleSpeak(text)}
+                      >
+                        Listen Question
+                      </Button>
+                      <Button
+                        colorScheme="teal"
+                        onClick={() => {
+                          handleStopSpeak();
+                        }}
+                      >
+                        Stop Listening Question
+                      </Button>
+                    </ButtonGroup>
+
+                    <ButtonGroup>
+                      <Button
+                        colorScheme="messenger"
+                        onClick={() =>
+                          SpeechRecognition.startListening({ continuous: true })
+                        }
+                      >
+                        Answer the Question
+                      </Button>
+                      <Button
+                        colorScheme="purple"
+                        onClick={SpeechRecognition.stopListening}
+                      >
+                        Pause Speaking
+                      </Button>
+                      <Button
+                        colorScheme="twitter"
+                        onClick={() => {
+                          hanldeResetTranscript();
+                        }}
+                      >
+                        Reset Answer
+                      </Button>
+                    </ButtonGroup>
+                  </Box>
+
+                  <Box
+                    display={"flex"}
+                    flexDirection={"row"}
+                    justifyContent={"space-between"}
+                  >
+                    <Button colorScheme="teal" onClick={nextQuestion}>
+                      Submit
+                    </Button>
+                    <Button onClick={handleEndTest}>End Test</Button>
+                  </Box>
                 </Box>
-              </Box>
+              )}
             </Box>
           </Box>
         </>
       )}
+      <Toaster />
     </>
   );
 }
